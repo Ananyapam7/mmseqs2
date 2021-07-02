@@ -16,6 +16,7 @@ task:
   name: "Old compilers"
   container:
     image: debian:jessie-slim
+    memory: 8G
   matrix:
     - name: Clang-4
       install_script: apt update --yes && apt install cmake clang-4.0 libc++-dev make git ca-certificates --yes --no-install-suggests --no-install-recommends
