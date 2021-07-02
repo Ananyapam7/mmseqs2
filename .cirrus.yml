@@ -18,12 +18,12 @@ task:
     image: debian:jessie-slim
   matrix:
     - name: Clang-4
-      install_script: apt install cmake clang-4.0 libc++-dev make git ca-certificates --yes --no-install-suggests --no-install-recommends
+      install_script: apt update --yes && apt install cmake clang-4.0 libc++-dev make git ca-certificates --yes --no-install-suggests --no-install-recommends
       env:
         CC: clang-4.0
         CXX: clang++-4.0
     - name: GCC-4.9
-      install_script: apt install cmake gcc-4.9 g++-4.9 make git ca-certificates --yes --no-install-suggests --no-install-recommends
+      install_script: apt update --yes && apt install cmake gcc-4.9 g++-4.9 make git ca-certificates --yes --no-install-suggests --no-install-recommends
       env:
         CC: gcc-4.9
         CXX: g++-4.9
