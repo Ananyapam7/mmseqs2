@@ -317,17 +317,48 @@ void PSSMCalculator::computeGapScoredLogPSSM(BaseMatrix *subMat, char *pssm, con
     for(size_t pos = 0; pos < queryLength; pos++){
         delta[pos] = MathUtil::flog2 (((gap_fraction_numerator[pos]/gap_fraction_denominator[pos]) + beta_gap_parameter)/(beta_gap_parameter + 1));
     }
-
-    for(size_t pos = 0; pos < queryLength; pos++){
+    
+    if(queryLength<=window_length){
+	// For short sequences, calculate the maximum directy
+        for(size_t pos = 0; pos < queryLength; pos++){
         size_t left_window = ((int) pos - (int) block_length > 0) ? (int) pos - (int)block_length : 0;
         size_t right_window = ((int) pos + (int) block_length >= (int) queryLength-1) ? (int) queryLength-1 : (int) pos + (int) block_length;
         float maxDelta = -1000.0f;
-        for (size_t i = left_window; i < right_window; ++i) {
+        for (size_t i = left_window; i <= right_window; ++i) {
             if (delta[i] > maxDelta) {
                 maxDelta = delta[i];
             }
         }
-        gap_correction[pos] = maxDelta; 
+        gap_correction[pos] = maxDelta;
+        }
+    }
+    else{
+    //Calculates a sliding window maximum using a deque, reduces the time to O(queryLength*setSize) from O(queryLength*setSize*window_length)
+    	std::deque<size_t> maxDelta;
+
+    	for (size_t i = 0; i < window_length + block_length; i++) {
+            size_t right_window = i + block_length;
+            while (!maxDelta.empty() && delta[maxDelta.back()] < delta[right_window]) maxDelta.pop_back();
+            maxDelta.push_back(right_window);
+            if(i<block_length) gap_correction[i] = delta[maxDelta.front()];
+    	}
+
+    	maxDelta.clear();
+
+    	for (size_t i = 0; i < queryLength; i++) {
+            while (!maxDelta.empty() && maxDelta.front() <= i-window_length) maxDelta.pop_front();
+            while (!maxDelta.empty() && delta[maxDelta.back()] < delta[i]) maxDelta.pop_back();
+            maxDelta.push_back(i);
+            if (i >= window_length-1) gap_correction[i-block_length] = delta[maxDelta.front()];
+    	}
+
+    	for (size_t i = queryLength-block_length; i < queryLength; i++) {
+            size_t left_window = i - block_length;
+            gap_correction[i] = delta[maxDelta.front()];
+            while (!maxDelta.empty() && maxDelta.front() <= left_window) maxDelta.pop_front();
+    	}
+
+    	maxDelta.clear();
     }
 
     for(size_t pos = 0; pos < queryLength; pos++) {
