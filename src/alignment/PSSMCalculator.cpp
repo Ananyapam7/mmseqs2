@@ -318,7 +318,7 @@ void PSSMCalculator::computeGapScoredLogPSSM(BaseMatrix *subMat, char *pssm, con
         delta[pos] = MathUtil::flog2 (((gap_fraction_numerator[pos]/gap_fraction_denominator[pos]) + beta_gap_parameter)/(beta_gap_parameter + 1));
     }
     
-    if(queryLength<=window_length){
+    if(queryLength<=window_length+block_length){
 	// For short sequences, calculate the maximum directy
         for(size_t pos = 0; pos < queryLength; pos++){
         size_t left_window = ((int) pos - (int) block_length > 0) ? (int) pos - (int)block_length : 0;
